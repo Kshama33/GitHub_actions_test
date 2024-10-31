@@ -26,8 +26,7 @@ jobs:
               data = yaml.safe_load(file); \
               names = [item['name'] for item in data['list']]; \
               names_str = ','.join(names); \
-          print(f'::set-output name=names::{names_str}')"
-        shell: bash
+              print(f'::set-output name=names::{names_str}')"
 
       - name: Find matching PBIX and RDL files
         id: find_files
