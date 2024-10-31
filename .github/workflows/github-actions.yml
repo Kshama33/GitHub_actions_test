@@ -27,6 +27,7 @@ jobs:
         run: |
           python -c "
           import yaml
+          import os
           with open('release.yml', 'r') as file:
               data = yaml.safe_load(file)
               names = [item['name'] for item in data['list']]
