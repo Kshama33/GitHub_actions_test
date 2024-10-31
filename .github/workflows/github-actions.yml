@@ -28,6 +28,8 @@ jobs:
               names_str = ','.join(names); \
               print(f'::set-output name=names::{names_str}')"
 
+        shell: bash
+
       - name: Find matching PBIX and RDL files
         id: find_files
         run: |
