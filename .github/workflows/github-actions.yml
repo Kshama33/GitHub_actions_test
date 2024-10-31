@@ -21,12 +21,15 @@ jobs:
       - name: Read release.yml and extract names
         id: extract_names
         run: |
-          python -c "import yaml; import os; \
-          with open('release.yml', 'r') as file: \
-              data = yaml.safe_load(file); \
-              names = [item['name'] for item in data['list']]; \
-              names_str = ','.join(names); \
-              print(f'::set-output name=names::{names_str}')"
+          python -c "
+          import yaml
+          with open('release.yml', 'r') as file:
+              data = yaml.safe_load(file)
+              names = [item['name'] for item in data['list']]
+              names_str = ','.join(names)
+              with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+                  env_file.write(f'names={names_str}\n')
+              "
 
         shell: bash
 
