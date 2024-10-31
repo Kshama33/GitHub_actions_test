@@ -1,0 +1,50 @@
+name: Upload Power BI Reports
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  upload_reports:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Read release.yml and extract names
+        id: extract_names
+        run: |
+          python -c "
+import yaml
+import os
+with open('path/to/release.yml', 'r') as file:
+    data = yaml.safe_load(file)
+    names = [item['name'] for item in data['list']]
+    names_str = ','.join(names)
+print(f'::set-output name=names::{names_str}')
+"
+        shell: bash
+
+      - name: Find matching PBIX and RDL files
+        id: find_files
+        run: |
+          names=${{ steps.extract_names.outputs.names }}
+          files=$(find dev/release -type f \( -name "*.pbix" -o -name "*.rdl" \))
+          matched_files=()
+          for file in $files; do
+              for name in ${names//,/ }; do
+                  if [[ $file == *"$name"* ]]; then
+                      matched_files+=("$file")
+                      break
+                  fi
+              done
+          done
+          echo "::set-output name=matched_files::${matched_files[*]}"
+          
