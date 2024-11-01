@@ -20,7 +20,7 @@ jobs:
 
       - name: Install PyYAML
         run: |
-          python -m pip install pyyaml requests
+          python -m pip install pyyaml requests msal
 
       - name: Read release.yml and extract names
         id: extract_names
