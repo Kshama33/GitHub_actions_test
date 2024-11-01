@@ -53,4 +53,37 @@ jobs:
               done
           done
           echo "::set-output name=matched_files::${matched_files[*]}"
+
+      - name: Upload files to Power BI workspace
+        env:
+          POWERBI_CLIENT_ID: ${{ secrets.POWERBI_CLIENT_ID }}
+          POWERBI_CLIENT_SECRET: ${{ secrets.POWERBI_CLIENT_SECRET }}
+          POWERBI_TENANT_ID: ${{ secrets.POWERBI_TENANT_ID }}
+          POWERBI_WORKSPACE_ID: ${{ secrets.POWERBI_WORKSPACE_ID }}
+        run: |
+          python -c "
+          import os
+          import requests
+          from msal import ConfidentialClientApplication
+
+          client_id = os.getenv('POWERBI_CLIENT_ID')
+          client_secret = os.getenv('POWERBI_CLIENT_SECRET')
+          tenant_id = os.getenv('POWERBI_TENANT_ID')
+          workspace_id = os.getenv('POWERBI_WORKSPACE_ID')
+
+          app = ConfidentialClientApplication(client_id, authority=f'https://login.microsoftonline.com/{tenant_id}', client_credential=client_secret)
+          token = app.acquire_token_for_client(scopes=['https://analysis.windows.net/powerbi/api/.default'])['access_token']
+
+          headers = {'Authorization': f'Bearer {token}'}
+          for file_path in '${{ steps.find_files.outputs.matched_files }}'.split():
+              file_name = os.path.basename(file_path)
+              with open(file_path, 'rb') as f:
+                  response = requests.post(
+                      f'https://api.powerbi.com/v1.0/myorg/groups/{workspace_id}/imports',
+                      headers=headers,
+                      files={'file': (file_name, f)},
+                      data={'datasetDisplayName': file_name, 'nameConflict': 'CreateOrOverwrite'}
+                  )
+                  print(response.json())
+          "
           
